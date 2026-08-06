@@ -15,6 +15,7 @@ from healthcare_pipeline.parsers.hl7.patient_address import PatientAddress
 from healthcare_pipeline.parsers.hl7.patient_identifier import PatientIdentifier
 from healthcare_pipeline.parsers.hl7.patient_name import PatientName
 from healthcare_pipeline.parsers.hl7.patient_phone import PatientPhone
+from healthcare_pipeline.parsers.hl7.pid_parser import PIDParser
 from healthcare_pipeline.parsers.hl7.processing_id import (
     HL7ProcessingId,
     HL7ProcessingMode,
@@ -45,4 +46,5 @@ __all__ = [
     "PatientIdentifier",
     "PatientName",
     "PatientPhone",
+    "PIDParser",
 ]
