@@ -3,7 +3,11 @@ from datetime import datetime
 import pytest
 
 from healthcare_pipeline.parsers.exceptions import InvalidMessageError
-from healthcare_pipeline.parsers.hl7 import HL7Parser, PatientClass, PV1Parser
+from healthcare_pipeline.parsers.hl7 import (
+    HL7Parser,
+    PatientClass,
+    PV1Parser,
+)
 
 
 def _message(pv1: str) -> bytes:

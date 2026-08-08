@@ -1,9 +1,6 @@
 import pytest
 
-from healthcare_pipeline.parsers.hl7 import (
-    HL7ProcessingId,
-    HL7ProcessingMode,
-)
+from healthcare_pipeline.parsers.hl7 import HL7ProcessingId, HL7ProcessingMode
 
 
 def test_processing_id_maps_standard_codes() -> None:

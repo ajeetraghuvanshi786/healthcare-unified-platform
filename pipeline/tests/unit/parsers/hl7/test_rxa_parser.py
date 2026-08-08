@@ -1,4 +1,8 @@
-from datetime import UTC, date, datetime
+from datetime import (
+    UTC,
+    date,
+    datetime,
+)
 from decimal import Decimal
 
 import pytest
