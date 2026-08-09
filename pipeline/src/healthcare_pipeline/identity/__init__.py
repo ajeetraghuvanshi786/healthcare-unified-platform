@@ -38,3 +38,31 @@ __all__ = [
     "PatientIdentityResolver",
     "PatientIdentityService",
 ]
+
+from healthcare_pipeline.identity.master import (
+    IdentityDecisionAction,
+    IdentityDecisionEvent,
+    IdentityDecisionReason,
+    InMemoryMasterIdentityRepository,
+    MasterIdentityRepository,
+    MasterPatient,
+    MasterPatientIdentityService,
+    MasterPatientLink,
+    MasterPatientLinkStatus,
+    ReviewCase,
+    ReviewCaseStatus,
+)
+
+__all__ += [
+    "IdentityDecisionAction",
+    "IdentityDecisionEvent",
+    "IdentityDecisionReason",
+    "InMemoryMasterIdentityRepository",
+    "MasterIdentityRepository",
+    "MasterPatient",
+    "MasterPatientIdentityService",
+    "MasterPatientLink",
+    "MasterPatientLinkStatus",
+    "ReviewCase",
+    "ReviewCaseStatus",
+]
