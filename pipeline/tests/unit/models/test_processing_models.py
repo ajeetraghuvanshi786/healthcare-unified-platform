@@ -93,9 +93,15 @@ def test_processing_checkpoint_contains_resume_columns() -> None:
 
 
 def test_processing_foreign_keys_are_restrictive_or_nullable_safe() -> None:
-    raw_record_fk = next(iter(ProcessingJob.__table__.columns["raw_ingestion_record_id"].foreign_keys))
-    dead_letter_job_fk = next(iter(DeadLetterRecord.__table__.columns["processing_job_id"].foreign_keys))
-    checkpoint_record_fk = next(iter(ProcessingCheckpoint.__table__.columns["last_processed_record_id"].foreign_keys))
+    raw_record_fk = next(
+        iter(ProcessingJob.__table__.columns["raw_ingestion_record_id"].foreign_keys)
+    )
+    dead_letter_job_fk = next(
+        iter(DeadLetterRecord.__table__.columns["processing_job_id"].foreign_keys)
+    )
+    checkpoint_record_fk = next(
+        iter(ProcessingCheckpoint.__table__.columns["last_processed_record_id"].foreign_keys)
+    )
 
     assert raw_record_fk.ondelete == "RESTRICT"
     assert dead_letter_job_fk.ondelete == "SET NULL"

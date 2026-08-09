@@ -50,7 +50,11 @@ class MessageFormatDetector:
     @staticmethod
     def _is_hl7_v2(text: str) -> bool:
         first_line = text.splitlines()[0] if text.splitlines() else text
-        return len(first_line) >= 4 and first_line[:3] in {"MSH", "FHS", "BHS"} and first_line[3] not in {" ", "\t"}
+        return (
+            len(first_line) >= 4
+            and first_line[:3] in {"MSH", "FHS", "BHS"}
+            and first_line[3] not in {" ", "\t"}
+        )
 
     @staticmethod
     def _detect_json(text: str) -> MessageFormat:

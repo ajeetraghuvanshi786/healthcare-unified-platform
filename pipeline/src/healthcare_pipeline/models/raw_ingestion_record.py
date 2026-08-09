@@ -33,9 +33,6 @@ from healthcare_pipeline.models.enums import (
 
 if TYPE_CHECKING:
     from healthcare_pipeline.models.ingestion_batch import IngestionBatch
-    from healthcare_pipeline.models.raw_ingestion_record import (
-        RawIngestionRecord,
-    )
     from healthcare_pipeline.models.source_system import SourceSystem
     from healthcare_pipeline.models.tenant import Tenant
 

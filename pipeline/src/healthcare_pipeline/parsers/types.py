@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import TypeAlias
 
-ParsedData: TypeAlias = object
-MetadataValue: TypeAlias = str | int | float | bool | None
-Metadata: TypeAlias = dict[str, MetadataValue]
+type ParsedData = object
+type MetadataValue = str | int | float | bool | None
+type Metadata = dict[str, MetadataValue]
 
 
 class MessageFormat(StrEnum):
