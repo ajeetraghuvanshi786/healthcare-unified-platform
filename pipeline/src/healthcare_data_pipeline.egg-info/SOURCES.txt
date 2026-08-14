@@ -1,6 +1,0 @@
-pyproject.toml
-src/healthcare_data_pipeline.egg-info/PKG-INFO
-src/healthcare_data_pipeline.egg-info/SOURCES.txt
-src/healthcare_data_pipeline.egg-info/dependency_links.txt
-src/healthcare_data_pipeline.egg-info/requires.txt
-src/healthcare_data_pipeline.egg-info/top_level.txt

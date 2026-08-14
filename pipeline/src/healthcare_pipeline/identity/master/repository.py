@@ -27,6 +27,7 @@ class MasterIdentityRepository(Protocol):
         *,
         scope: IdentityScope,
         source_record_id: str,
+        source_system: str | None = None,
     ) -> MasterPatientLink | None: ...
 
     def active_links_for_master(self, master_patient_id: UUID) -> tuple[MasterPatientLink, ...]: ...
@@ -47,12 +48,12 @@ class InMemoryMasterIdentityRepository:
     """Thread-safe development/test repository implementing production repository semantics."""
 
     _masters: dict[UUID, MasterPatient] = field(default_factory=dict, init=False, repr=False)
-    _links_by_record: dict[tuple[IdentityScope, str], MasterPatientLink] = field(
+    _links_by_record: dict[tuple[IdentityScope, str, str], MasterPatientLink] = field(
         default_factory=dict,
         init=False,
         repr=False,
     )
-    _links_by_master: dict[UUID, dict[str, MasterPatientLink]] = field(
+    _links_by_master: dict[UUID, dict[tuple[str, str], MasterPatientLink]] = field(
         default_factory=dict,
         init=False,
         repr=False,
@@ -77,13 +78,25 @@ class InMemoryMasterIdentityRepository:
         *,
         scope: IdentityScope,
         source_record_id: str,
+        source_system: str | None = None,
     ) -> MasterPatientLink | None:
-        key = (scope, source_record_id.strip())
+        normalized_id = source_record_id.strip()
         with self._lock:
-            link = self._links_by_record.get(key)
-            if link is None or link.status is not MasterPatientLinkStatus.ACTIVE:
-                return None
-            return link
+            if source_system is not None:
+                link = self._links_by_record.get((scope, source_system.strip(), normalized_id))
+                if link is None or link.status is not MasterPatientLinkStatus.ACTIVE:
+                    return None
+                return link
+            matches = [
+                link
+                for (candidate_scope, _system, candidate_id), link in self._links_by_record.items()
+                if candidate_scope == scope
+                and candidate_id == normalized_id
+                and link.status is MasterPatientLinkStatus.ACTIVE
+            ]
+            if len(matches) > 1:
+                raise ValueError("source_record_id is ambiguous across source systems")
+            return matches[0] if matches else None
 
     def active_links_for_master(self, master_patient_id: UUID) -> tuple[MasterPatientLink, ...]:
         with self._lock:
@@ -107,7 +120,7 @@ class InMemoryMasterIdentityRepository:
             if master.scope != link.scope:
                 raise ValueError("link scope does not match master patient scope")
 
-            key = (link.scope, link.source_record_id)
+            key = (link.scope, link.source_system, link.source_record_id)
             current = self._links_by_record.get(key)
             if (
                 link.status is MasterPatientLinkStatus.ACTIVE
@@ -119,7 +132,7 @@ class InMemoryMasterIdentityRepository:
 
             self._links_by_record[key] = link
             by_master = self._links_by_master.setdefault(link.master_patient_id, {})
-            by_master[link.source_record_id] = link
+            by_master[(link.source_system, link.source_record_id)] = link
 
     def save_review_case(self, review_case: ReviewCase) -> None:
         with self._lock:

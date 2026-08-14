@@ -1,3 +1,4 @@
+from dataclasses import MISSING, fields
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -59,3 +60,8 @@ def test_review_case_close_is_one_way() -> None:
     assert closed.status is ReviewCaseStatus.REJECTED
     with pytest.raises(ValueError, match="already closed"):
         closed.close(ReviewCaseStatus.APPROVED)
+
+
+def test_link_timestamp_uses_per_instance_default_factory() -> None:
+    linked_at = next(item for item in fields(MasterPatientLink) if item.name == "linked_at")
+    assert linked_at.default_factory is not MISSING

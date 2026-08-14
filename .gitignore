@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -16,6 +17,8 @@ env/
 
 # Environment variables and secrets
 .env
+.env.*
+!.env.example
 *.pem
 *.key
 

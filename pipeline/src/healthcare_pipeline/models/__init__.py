@@ -27,6 +27,14 @@ from healthcare_pipeline.models.enums import (
     ValidationOutcome,
     ValidationSeverity,
 )
+from healthcare_pipeline.models.identity_master import (
+    IdentityCandidateKeyModel,
+    IdentityDecisionEventModel,
+    IdentityReviewCaseModel,
+    IdentitySourceRecordModel,
+    MasterPatientLinkModel,
+    MasterPatientModel,
+)
 from healthcare_pipeline.models.ingestion_batch import IngestionBatch
 from healthcare_pipeline.models.location import Location
 from healthcare_pipeline.models.organization import Organization
@@ -52,6 +60,12 @@ __all__ = [
     "Tenant",
     "IngestionBatch",
     "RawIngestionRecord",
+    "MasterPatientModel",
+    "MasterPatientLinkModel",
+    "IdentityReviewCaseModel",
+    "IdentityDecisionEventModel",
+    "IdentitySourceRecordModel",
+    "IdentityCandidateKeyModel",
     "ProcessingJob",
     "ValidationResult",
     "TransformationLog",

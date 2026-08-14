@@ -79,7 +79,7 @@ class MasterPatientLink:
     source_system: str
     scope: IdentityScope
     status: MasterPatientLinkStatus = MasterPatientLinkStatus.ACTIVE
-    linked_at: datetime = _aware_now()
+    linked_at: datetime = field(default_factory=_aware_now)
     unlinked_at: datetime | None = None
 
     def __post_init__(self) -> None:

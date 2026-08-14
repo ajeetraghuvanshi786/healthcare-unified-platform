@@ -37,6 +37,7 @@ class MasterPatientIdentityService:
         existing = self.repository.active_link_for_record(
             scope=record.scope,
             source_record_id=record.record_id,
+            source_system=record.source_system,
         )
         if existing is not None:
             master = self.repository.get_master(existing.master_patient_id)
@@ -72,6 +73,7 @@ class MasterPatientIdentityService:
         current = self.repository.active_link_for_record(
             scope=record.scope,
             source_record_id=record.record_id,
+            source_system=record.source_system,
         )
         if current is not None:
             if current.master_patient_id == master_patient_id:
@@ -91,12 +93,14 @@ class MasterPatientIdentityService:
         *,
         scope: IdentityScope,
         source_record_id: str,
+        source_system: str | None = None,
         actor_id: str,
         reason: IdentityDecisionReason,
     ) -> MasterPatientLink:
         current = self.repository.active_link_for_record(
             scope=scope,
             source_record_id=source_record_id,
+            source_system=source_system,
         )
         if current is None:
             raise ValueError("source record has no active master link")
@@ -161,6 +165,7 @@ class MasterPatientIdentityService:
         candidate_link = self.repository.active_link_for_record(
             scope=candidate_record.scope,
             source_record_id=candidate_record.record_id,
+            source_system=candidate_record.source_system,
         )
         if candidate_link is None:
             master = self.create_master_and_link(

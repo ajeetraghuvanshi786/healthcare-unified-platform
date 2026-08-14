@@ -10,6 +10,35 @@ from healthcare_pipeline.identity.models import IdentityRecord
 from healthcare_pipeline.identity.normalization import PatientIdentityNormalizer
 
 
+@dataclass(frozen=True, slots=True)
+class IdentityCandidateKeyFactory:
+    """Create tenant/domain-scoped HMAC candidate keys without exposing PHI values."""
+
+    key_encoder: IdentityKeyEncoder
+    normalizer: PatientIdentityNormalizer = PatientIdentityNormalizer()
+
+    def keys(self, record: IdentityRecord) -> tuple[str, ...]:
+        if not isinstance(record, IdentityRecord):
+            raise TypeError("record must be an IdentityRecord")
+        normalized = self.normalizer.normalize(record.patient)
+        scope_prefix = f"{record.scope.tenant_id}\x1f{record.scope.identity_domain}"
+        raw_keys: list[tuple[str, str]] = []
+        raw_keys.extend(("identifier", value) for value in normalized.scoped_identifiers)
+        if normalized.birth_date is not None:
+            raw_keys.extend(
+                ("name_dob", f"{name}\x1f{normalized.birth_date}")
+                for name in normalized.name_keys
+            )
+        raw_keys.extend(("phone", value) for value in normalized.phones)
+        raw_keys.extend(("email", value) for value in normalized.emails)
+        return tuple(
+            dict.fromkeys(
+                self.key_encoder.encode(f"{scope_prefix}\x1f{kind}", value)
+                for kind, value in raw_keys
+            )
+        )
+
+
 class IdentityCandidateStore(Protocol):
     def upsert(self, record: IdentityRecord) -> None: ...
 
@@ -39,7 +68,7 @@ class InMemoryIdentityCandidateStore:
     def upsert(self, record: IdentityRecord) -> None:
         if not isinstance(record, IdentityRecord):
             raise TypeError("record must be an IdentityRecord")
-        keys = self._candidate_keys(record)
+        keys = self._key_factory().keys(record)
         with self._lock:
             previous_keys = self._record_keys.get(record.record_id, ())
             for key in previous_keys:
@@ -63,7 +92,7 @@ class InMemoryIdentityCandidateStore:
             return self._records.get(record_id.strip())
 
     def candidate_ids(self, record: IdentityRecord) -> tuple[str, ...]:
-        keys = self._candidate_keys(record)
+        keys = self._key_factory().keys(record)
         candidates: set[str] = set()
         with self._lock:
             for key in keys:
@@ -71,21 +100,5 @@ class InMemoryIdentityCandidateStore:
         candidates.discard(record.record_id)
         return tuple(sorted(candidates))
 
-    def _candidate_keys(self, record: IdentityRecord) -> tuple[str, ...]:
-        normalized = self.normalizer.normalize(record.patient)
-        scope_prefix = f"{record.scope.tenant_id}\x1f{record.scope.identity_domain}"
-        raw_keys: list[tuple[str, str]] = []
-        raw_keys.extend(("identifier", value) for value in normalized.scoped_identifiers)
-        if normalized.birth_date is not None:
-            raw_keys.extend(
-                ("name_dob", f"{name}\x1f{normalized.birth_date}")
-                for name in normalized.name_keys
-            )
-        raw_keys.extend(("phone", value) for value in normalized.phones)
-        raw_keys.extend(("email", value) for value in normalized.emails)
-        return tuple(
-            dict.fromkeys(
-                self.key_encoder.encode(f"{scope_prefix}\x1f{kind}", value)
-                for kind, value in raw_keys
-            )
-        )
+    def _key_factory(self) -> IdentityCandidateKeyFactory:
+        return IdentityCandidateKeyFactory(self.key_encoder, self.normalizer)

@@ -5,14 +5,18 @@ from sqlalchemy import DateTime, Integer, MetaData, func
 from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+# Database object names must remain portable across supported relational
+# databases. PostgreSQL limits identifiers to 63 bytes, so foreign-key names
+# intentionally omit the referred table name.
+#
+# The local column name together with the owning table is sufficient to
+# uniquely and deterministically identify a foreign-key constraint within
+# the schema.
 NAMING_CONVENTION = {
     "ix": "ix_%(table_name)s_%(column_0_name)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": (
-        "fk_%(table_name)s_%(column_0_name)s_"
-        "%(referred_table_name)s"
-    ),
+    "fk": "fk_%(table_name)s_%(column_0_name)s",
     "pk": "pk_%(table_name)s",
 }
 

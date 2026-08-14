@@ -13,6 +13,9 @@ from healthcare_pipeline.identity.master.repository import (
     MasterIdentityRepository,
 )
 from healthcare_pipeline.identity.master.service import MasterPatientIdentityService
+from healthcare_pipeline.identity.master.sqlalchemy_repository import (
+    SQLAlchemyMasterIdentityRepository,
+)
 
 __all__ = [
     "IdentityDecisionAction",
@@ -26,4 +29,5 @@ __all__ = [
     "InMemoryMasterIdentityRepository",
     "MasterIdentityRepository",
     "MasterPatientIdentityService",
+    "SQLAlchemyMasterIdentityRepository",
 ]
