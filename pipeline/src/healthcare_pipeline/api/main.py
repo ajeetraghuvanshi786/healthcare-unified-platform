@@ -8,6 +8,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from healthcare_pipeline.api.middleware import RequestIdMiddleware
+from healthcare_pipeline.api.routes.clinical import router as clinical_router
 from healthcare_pipeline.api.routes.health import router as health_router
 from healthcare_pipeline.api.routes.master_patients import router as identity_router
 from healthcare_pipeline.api.routes.processing import router as processing_router
@@ -50,6 +51,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.session_factory = factory
     app.add_middleware(RequestIdMiddleware)
     app.include_router(health_router)
+    app.include_router(clinical_router)
     app.include_router(processing_router)
     app.include_router(identity_router)
     return app

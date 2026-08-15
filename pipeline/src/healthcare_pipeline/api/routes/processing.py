@@ -7,6 +7,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from healthcare_pipeline.api.dependencies import DatabaseSession, Runtime
 from healthcare_pipeline.api.schemas import HL7ProcessRequest, ProcessingResponse
 from healthcare_pipeline.api.security import RequestIdentityContext, require_request_identity
+from healthcare_pipeline.clinical.exceptions import ClinicalMessageConflict
 from healthcare_pipeline.parsers.exceptions import InvalidMessageError, InvalidPayloadError
 
 router = APIRouter(prefix="/api/v1", tags=["processing"])
@@ -35,11 +36,11 @@ def process_hl7(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="HL7 payload is invalid or violates supported processing rules",
         ) from exc
-    except (IntegrityError, StaleDataError) as exc:
+    except (ClinicalMessageConflict, IntegrityError, StaleDataError) as exc:
         session.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Concurrent identity update conflict; retry the request",
+            detail="Processing conflict; the source message cannot be safely applied",
         ) from exc
     except OperationalError as exc:
         session.rollback()
@@ -59,4 +60,8 @@ def process_hl7(
         source_record_id=outcome.source_record_id,
         master_patient_id=outcome.master_patient_id,
         review_case_id=outcome.review_case_id,
+        clinical_message_id=outcome.clinical_message_id,
+        clinical_write_status=(
+            outcome.clinical_write_status.value if outcome.clinical_write_status else None
+        ),
     )

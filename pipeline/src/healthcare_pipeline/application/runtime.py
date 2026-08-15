@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from healthcare_pipeline.application.identity_review import IdentityReviewApplicationService
 from healthcare_pipeline.application.processing import HealthcareMessageProcessingService
+from healthcare_pipeline.clinical.service import ClinicalMessageWriter, LongitudinalClinicalService
+from healthcare_pipeline.clinical.sqlalchemy_repository import SQLAlchemyClinicalRepository
 from healthcare_pipeline.config.settings import Settings
 from healthcare_pipeline.identity.keying import HmacIdentityKeyEncoder
 from healthcare_pipeline.identity.master.sqlalchemy_repository import (
@@ -31,11 +33,13 @@ class ApplicationRuntime:
             candidate_store,
             max_candidates=self.settings.identity_max_candidates,
         )
+        clinical_repository = SQLAlchemyClinicalRepository(session)
         return HealthcareMessageProcessingService(
             identity=identity,
             master_repository=SQLAlchemyMasterIdentityRepository(session),
             record_id_encoder=encoder,
             max_payload_bytes=self.settings.max_hl7_payload_bytes,
+            clinical_writer=ClinicalMessageWriter(clinical_repository),
         )
 
     def identity_review_service(self, session: Session) -> IdentityReviewApplicationService:
@@ -44,6 +48,9 @@ class ApplicationRuntime:
             candidate_store=candidate_store,
             master_repository=SQLAlchemyMasterIdentityRepository(session),
         )
+
+    def longitudinal_clinical_service(self, session: Session) -> LongitudinalClinicalService:
+        return LongitudinalClinicalService(SQLAlchemyClinicalRepository(session))
 
     def _identity_store(
         self,

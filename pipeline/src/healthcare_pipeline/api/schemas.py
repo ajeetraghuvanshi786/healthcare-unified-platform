@@ -26,6 +26,8 @@ class ProcessingResponse(APIModel):
     source_record_id: str | None = None
     master_patient_id: UUID | None = None
     review_case_id: UUID | None = None
+    clinical_message_id: UUID | None = None
+    clinical_write_status: str | None = None
 
 
 class MasterPatientLinkResponse(APIModel):

@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import UUID
 
+from healthcare_pipeline.clinical.models import ClinicalWriteStatus
+from healthcare_pipeline.clinical.service import ClinicalMessageWriter
 from healthcare_pipeline.identity.keying import IdentityKeyEncoder
 from healthcare_pipeline.identity.master.models import IdentityDecisionReason
 from healthcare_pipeline.identity.master.repository import MasterIdentityRepository
@@ -38,16 +41,19 @@ class ProcessingOutcome:
     source_record_id: str | None = None
     master_patient_id: UUID | None = None
     review_case_id: UUID | None = None
+    clinical_message_id: UUID | None = None
+    clinical_write_status: ClinicalWriteStatus | None = None
 
 
 @dataclass(slots=True)
 class HealthcareMessageProcessingService:
-    """Orchestrate Phase 3I without coupling domain logic to HTTP or persistence details."""
+    """Orchestrate validated HL7, identity resolution and durable clinical writes."""
 
     identity: PatientIdentityService
     master_repository: MasterIdentityRepository
     record_id_encoder: IdentityKeyEncoder
     max_payload_bytes: int
+    clinical_writer: ClinicalMessageWriter | None = None
     parser: HL7Parser = field(default_factory=HL7Parser)
     assembler: HL7ClinicalMessageAssembler = field(default_factory=HL7ClinicalMessageAssembler)
     transformer: HL7ToCanonicalTransformer = field(default_factory=HL7ToCanonicalTransformer)
@@ -62,6 +68,7 @@ class HealthcareMessageProcessingService:
         scope: IdentityScope,
         actor_id: str,
     ) -> ProcessingOutcome:
+        received_at = datetime.now(UTC)
         if not isinstance(payload, bytes) or not payload:
             raise ValueError("payload must be non-empty bytes")
         if len(payload) > self.max_payload_bytes:
@@ -150,6 +157,19 @@ class HealthcareMessageProcessingService:
             case = master_service.open_review(record, resolution, actor_id=actor_id)
             review_case_id = case.review_case_id
 
+        clinical_message_id: UUID | None = None
+        clinical_write_status: ClinicalWriteStatus | None = None
+        if master_patient_id is not None and self.clinical_writer is not None:
+            write = self.clinical_writer.persist(
+                message=canonical,
+                master_patient_id=master_patient_id,
+                scope=scope,
+                source_system=normalized_source_system,
+                received_at=received_at,
+            )
+            clinical_message_id = write.clinical_message_id
+            clinical_write_status = write.status
+
         return ProcessingOutcome(
             status=ProcessingStatus.PROCESSED,
             source_message_id=canonical.source_message_id,
@@ -161,6 +181,8 @@ class HealthcareMessageProcessingService:
             source_record_id=source_record_id,
             master_patient_id=master_patient_id,
             review_case_id=review_case_id,
+            clinical_message_id=clinical_message_id,
+            clinical_write_status=clinical_write_status,
         )
 
     def _source_record_id(

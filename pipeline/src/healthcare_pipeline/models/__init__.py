@@ -2,6 +2,18 @@
 
 from healthcare_pipeline.models.assigning_authority import AssigningAuthority
 from healthcare_pipeline.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin, VersionMixin
+from healthcare_pipeline.models.clinical import (
+    ClinicalAllergyRecord,
+    ClinicalCoverageRecord,
+    ClinicalDiagnosisRecord,
+    ClinicalEncounterRecord,
+    ClinicalMedicationAdministrationRecord,
+    ClinicalMedicationOrderRecord,
+    ClinicalMessageRecord,
+    ClinicalObservationRecord,
+    ClinicalProvenanceRecord,
+    ClinicalTimelineEventRecord,
+)
 from healthcare_pipeline.models.dead_letter_record import DeadLetterRecord
 from healthcare_pipeline.models.enums import (
     CheckpointStatus,
@@ -60,6 +72,16 @@ __all__ = [
     "Tenant",
     "IngestionBatch",
     "RawIngestionRecord",
+    "ClinicalMessageRecord",
+    "ClinicalEncounterRecord",
+    "ClinicalDiagnosisRecord",
+    "ClinicalObservationRecord",
+    "ClinicalAllergyRecord",
+    "ClinicalMedicationOrderRecord",
+    "ClinicalMedicationAdministrationRecord",
+    "ClinicalCoverageRecord",
+    "ClinicalProvenanceRecord",
+    "ClinicalTimelineEventRecord",
     "MasterPatientModel",
     "MasterPatientLinkModel",
     "IdentityReviewCaseModel",
